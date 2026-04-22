@@ -58,6 +58,9 @@ COPY main.py .
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY start.sh .
 
+# 核心修改：增加一行 sed 处理，强行将 CRLF 转换为 LF
+RUN sed -i 's/\r$//' start.sh
+
 # 创建 uid 1000 的普通用户，并给应用、数据和 Nginx 依赖目录赋权
 RUN useradd -m -u 1000 user && \
     mkdir -p /data /var/lib/nginx /var/log/nginx && \
