@@ -10,8 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制代码
 COPY . .
 
-# 赋予启动脚本执行权限，防止没有权限运行
+# 赋予启动脚本执行权限
 RUN chmod +x start.sh
 
-# 执行统一启动脚本 (包含虚拟显示器、VNC、Nginx和MCP)
-CMD ["./start.sh"]
+# 终极启动指令：直接呼叫底层 shell 强制执行，无视文件系统权限拦截
+CMD ["sh", "start.sh"]
