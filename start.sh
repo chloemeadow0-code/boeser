@@ -13,8 +13,8 @@ sleep 2
 websockify --web=/usr/share/novnc 6080 localhost:5900 &
 sleep 1
 
-# 启动 nginx (将 pid 和错误日志重定向到普通用户有权限的 /tmp 目录)
-nginx -g "pid /tmp/nginx.pid; error_log /tmp/error.log;" &
+# 启动 nginx
+nginx &
 
 # 启动 MCP 服务
 PORT=8081 python main.py
