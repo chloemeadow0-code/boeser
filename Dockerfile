@@ -1,17 +1,71 @@
-# 直接使用微软官方打包好的完美环境
-FROM mcr.microsoft.com/playwright/python:v1.43.0-jammy
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y \
+    wget \
+    ca-certificates \
+    fonts-liberation \
+    fonts-noto-cjk \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libc6 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libexpat1 \
+    libfontconfig1 \
+    libgbm1 \
+    libgcc1 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libstdc++6 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    lsb-release \
+    xdg-utils \
+    xvfb \
+    x11vnc \
+    novnc \
+    websockify \
+    nginx \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
-# 安装你的 Python 库
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制代码
-COPY . .
+# 重新配置 Playwright 浏览器路径，确保普通用户有权限读取
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/pw-browsers
+RUN playwright install chromium
 
-# 赋予启动脚本执行权限
-RUN chmod +x start.sh
+COPY main.py .
+COPY nginx.conf /etc/nginx/sites-enabled/default
+COPY start.sh .
 
-# 终极启动指令：直接呼叫底层 shell 强制执行，无视文件系统权限拦截
-CMD ["sh", "start.sh"]
+# 创建 uid 1000 的普通用户，并给应用、数据和 Nginx 依赖目录赋权
+RUN useradd -m -u 1000 user && \
+    mkdir -p /data /var/lib/nginx /var/log/nginx && \
+    chown -R 1000:1000 /app /data /var/lib/nginx /var/log/nginx /etc/nginx && \
+    chmod +x start.sh
+
+# 切换到普通用户运行服务
+USER 1000
+
+VOLUME ["/data"]
+EXPOSE 7860
+CMD ["./start.sh"]
