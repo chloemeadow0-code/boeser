@@ -54,7 +54,8 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/app/pw-browsers
 RUN playwright install chromium
 
 COPY main.py .
-COPY nginx.conf /etc/nginx/sites-enabled/default
+# 将原本覆盖到 sites-enabled 的完整配置，直接替换掉系统的 nginx 主配置文件
+COPY nginx.conf /etc/nginx/nginx.conf
 COPY start.sh .
 
 # 创建 uid 1000 的普通用户，并给应用、数据和 Nginx 依赖目录赋权
