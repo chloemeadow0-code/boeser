@@ -44,17 +44,18 @@ RUN apt-get update && apt-get install -y \
     websockify \
     nginx \
     curl \
-    unzip \
+    git \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && npm install -g @jackwener/opencli \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-# 下载并解压 opencli 浏览器扩展
-# 顺着线索（manifest.json）帮他把眼镜找出来戴上
-RUN EXT_DIR=$(dirname $(find $(npm root -g)/@jackwener/opencli -name "manifest.json" | head -n 1)) && \
-    cp -r $EXT_DIR /app/opencli-extension
+# 直接去源头把完整的包裹拿回来，挑出我们需要的那副眼镜，然后把剩下的清理干净
+RUN git clone --depth 1 https://github.com/jackwener/opencli.git /tmp/opencli-repo && \
+    EXT_DIR=$(dirname $(find /tmp/opencli-repo -name "manifest.json" | head -n 1)) && \
+    cp -r $EXT_DIR /app/opencli-extension && \
+    rm -rf /tmp/opencli-repo
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
