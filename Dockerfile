@@ -52,9 +52,9 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 # 下载并解压 opencli 浏览器扩展
-RUN wget https://github.com/jackwener/opencli/releases/latest/download/opencli-extension.zip && \
-    unzip opencli-extension.zip -d opencli-extension && \
-    rm opencli-extension.zip
+# 顺着线索（manifest.json）帮他把眼镜找出来戴上
+RUN EXT_DIR=$(dirname $(find $(npm root -g)/@jackwener/opencli -name "manifest.json" | head -n 1)) && \
+    cp -r $EXT_DIR /app/opencli-extension
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
