@@ -43,9 +43,19 @@ RUN apt-get update && apt-get install -y \
     novnc \
     websockify \
     nginx \
+    curl \
+    unzip \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g @jackwener/opencli \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+# 下载并解压 opencli 浏览器扩展
+RUN wget https://github.com/jackwener/opencli/releases/latest/download/opencli-extension.zip && \
+    unzip opencli-extension.zip -d opencli-extension && \
+    rm opencli-extension.zip
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN playwright install chromium

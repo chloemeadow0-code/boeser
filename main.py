@@ -83,6 +83,9 @@ async def ensure_page() -> Page:
             "--disable-dev-shm-usage",
             "--disable-gpu",
             "--disable-blink-features=AutomationControlled",
+            "--password-store=basic",
+            "--disable-extensions-except=/app/opencli-extension",
+            "--load-extension=/app/opencli-extension",
         ],
         viewport={"width": 1280, "height": 900},
         user_agent=(
@@ -385,6 +388,37 @@ async def comment_xhs_note(text: str) -> str:
             return f"已发送评论: {text}"
         except Exception as e:
             return f"[错误] comment_xhs_note 失败: {e}"
+
+@mcp.tool()
+async def run_opencli(command: str) -> str:
+    """
+    执行 opencli 社交媒体指令。
+    用法示例：
+    - 刷推特：opencli twitter timeline
+    - 发推特：opencli twitter post "今天天气真好"
+    - 回复推特：opencli twitter reply "推文链接" "回复内容"
+    """
+    async with get_lock():
+        try:
+            # 确保浏览器是打开的，并且扩展在运行
+            await ensure_page()
+            
+            # 在后台执行 opencli 命令
+            process = await asyncio.create_subprocess_shell(
+                command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await process.communicate()
+            out = stdout.decode().strip()
+            err = stderr.decode().strip()
+
+            if process.returncode == 0:
+                return f"执行成功:\n{out}"
+            else:
+                return f"执行失败:\n{err}\n{out}"
+        except Exception as e:
+            return f"[错误] opencli 失败: {e}"
 
 
 if __name__ == "__main__":
